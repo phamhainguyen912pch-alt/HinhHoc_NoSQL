@@ -1,0 +1,20 @@
+{
+  "name": "quadgeo-neo4j-learning-system",
+  "version": "2.0.0",
+  "description": "Ứng dụng Hỗ trợ Học Toán Hình học phẳng (Chuyên đề Tứ giác) kết hợp Cơ sở dữ liệu Đồ thị Tri thức Neo4j - Nhóm 4",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "python tests/test_geometry_engine.py"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "neo4j-driver": "^5.20.0"
+  }
+}

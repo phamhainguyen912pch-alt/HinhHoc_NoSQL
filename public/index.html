@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuadGeo Neo4j — Ứng dụng Hỗ trợ Học Toán Hình học phẳng (Chuyên đề Tứ giác)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body class="min-h-screen flex flex-col bg-slate-100 text-slate-900">
+
+  <!-- ======================= TOP NAVIGATION HEADER ======================= -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <!-- Brand -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-extrabold text-lg shadow-sm">
+          ⬠
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base font-extrabold tracking-tight text-slate-900">QuadGeo Neo4j</h1>
+            <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+              Nhóm 4 • SGK Toán 8
+            </span>
+          </div>
+          <p class="text-xs text-slate-500">Hệ thống Học Toán Hình học phẳng (Tứ giác) & Đồ thị Tri thức Neo4j</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="hidden lg:flex items-center gap-1 h-full">
+        <button id="tabBtn_lab" onclick="window.QuadGeoApp.switchTab('lab')" class="tab-btn active px-3.5 h-full text-xs font-bold flex items-center gap-1.5 text-slate-700">
+          <span>📐</span> Phòng Thí Nghiệm & Bài Tập Dựng Hình
+        </button>
+        <button id="tabBtn_quiz" onclick="window.QuadGeoApp.switchTab('quiz')" class="tab-btn px-3.5 h-full text-xs font-bold flex items-center gap-1.5 text-slate-700">
+          <span>📝</span> Trắc Nghiệm Định Lý Neo4j
+        </button>
+        <button id="tabBtn_graph" onclick="window.QuadGeoApp.switchTab('graph')" class="tab-btn px-3.5 h-full text-xs font-bold flex items-center gap-1.5 text-slate-700">
+          <span>🕸️</span> Đồ Thị Tri Thức & Cypher Lab
+        </button>
+        <button id="tabBtn_progress" onclick="window.QuadGeoApp.switchTab('progress')" class="tab-btn px-3.5 h-full text-xs font-bold flex items-center gap-1.5 text-slate-700">
+          <span>🏆</span> Tiến Độ Học Tập (:SOLVED)
+        </button>
+      </nav>
+
+      <!-- Right Status & User Auth -->
+      <div class="flex items-center gap-2.5">
+        <button onclick="window.QuadGeoApp.openModal('neo4jModal')" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700 transition">
+          <span id="neo4jStatusDot" class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+          <span id="neo4jStatusText">Neo4j Graph: Sẵn sàng</span>
+        </button>
+
+        <button onclick="window.QuadGeoApp.openModal('authModal')" class="flex items-center gap-2.5 pl-2.5 pr-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition text-left">
+          <div class="w-7 h-7 rounded-lg bg-indigo-600 text-white font-bold text-xs flex items-center justify-center">
+            HS
+          </div>
+          <div class="hidden sm:block">
+            <div id="headerUsername" class="text-xs font-bold text-slate-900 leading-tight">Đỗ Thành Trung</div>
+            <div id="headerUserRole" class="text-[10px] text-indigo-700 font-medium">Lớp 8A1 • Học sinh</div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Tab Bar -->
+    <div class="flex lg:hidden border-t border-slate-100 px-3 py-1.5 gap-1 overflow-x-auto bg-slate-50">
+      <button onclick="window.QuadGeoApp.switchTab('lab')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white border border-slate-200 shrink-0">📐 Canvas & Dựng hình</button>
+      <button onclick="window.QuadGeoApp.switchTab('quiz')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white border border-slate-200 shrink-0">📝 Trắc nghiệm</button>
+      <button onclick="window.QuadGeoApp.switchTab('graph')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white border border-slate-200 shrink-0">🕸️ Đồ thị Neo4j</button>
+      <button onclick="window.QuadGeoApp.switchTab('progress')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white border border-slate-200 shrink-0">🏆 Tiến độ</button>
+    </div>
+  </header>
+
+  <!-- ======================= MAIN CONTENT AREA ======================= -->
+  <main class="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 py-5">
+
+    <!-- ===================== TAB 1: PHÒNG THÍ NGHIỆM & BÀI TẬP DỰNG HÌNH ===================== -->
+    <section id="tabSection_lab" class="space-y-5">
+
+      <!-- Bộ chọn nhanh Mẫu hình tứ giác (Presets) -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-sm flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Mẫu tứ giác chuẩn:</span>
+          <div id="presetShapesContainer" class="flex flex-wrap items-center gap-1.5"></div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="window.QuadGeoApp.exportCurrentCanvasPNG()" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5">
+            <span>📸</span> Xuất ảnh bài làm PNG
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+        <!-- CỘT TRÁI (7 CỘT): MẶT PHẲNG CANVAS TƯƠNG TÁC & NHIỆM VỤ DỰNG HÌNH -->
+        <div class="lg:col-span-7 space-y-4">
+
+          <!-- Banner Bài tập dựng hình đang chọn (US-10 & US-11: Gợi ý 3 tầng & Chấm tự động) -->
+          <div id="activeExerciseWorkspaceBanner" class="hidden bg-indigo-950 text-white rounded-2xl p-4 shadow-md space-y-3 border border-indigo-800">
+            <div class="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
+                  Chế độ Bài Tập Thực Hành Dựng Hình (Neo4j Graph Validation)
+                </span>
+                <h3 id="activeExerciseTitle" class="text-sm font-extrabold mt-1 text-white">Bài 1: Dựng Hình vuông ABCD</h3>
+                <p id="activeExercisePrompt" class="text-xs text-indigo-200 mt-0.5"></p>
+              </div>
+              <button onclick="window.QuadGeoApp.clearActiveExercise()" class="text-xs text-indigo-300 hover:text-white px-2 py-1 rounded-lg bg-indigo-900/60">
+                ✕ Thoát bài tập
+              </button>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+              <button onclick="window.QuadGeoApp.requestNextHintTier()" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition flex items-center gap-1.5 shadow-sm">
+                <span>💡</span> <span id="hintTierBtnLabel">Gợi ý Tầng 1 (Lý thuyết)</span>
+              </button>
+              <button id="btnToggleSampleOverlay" onclick="window.QuadGeoApp.toggleSampleOverlay()" class="hidden px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs transition">
+                Xem hình mẫu trên Canvas
+              </button>
+              <button onclick="window.QuadGeoApp.submitConstructionExercise()" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition shadow-sm ml-auto">
+                ✓ Nộp bài chấm điểm (Graph Validation)
+              </button>
+            </div>
+
+            <!-- Khung hiển thị Gợi ý 3 tầng Neo4j -->
+            <div id="exerciseHintOutputBox" class="hidden"></div>
+            <!-- Khung hiển thị Kết quả chấm bài tự động -->
+            <div id="exerciseGradeOutputBox" class="hidden"></div>
+          </div>
+
+          <!-- Khung Canvas chính -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
+            <!-- Thanh công cụ Canvas (Grid, Snap 10px, Snap 90°, Đường chéo, Ký hiệu) -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100 text-xs">
+              <div class="flex flex-wrap items-center gap-3.5">
+                <label class="inline-flex items-center gap-1.5 cursor-pointer font-medium text-slate-700">
+                  <input id="toggleGrid" type="checkbox" checked class="rounded text-indigo-600 focus:ring-indigo-500" />
+                  <span>Lưới tọa độ (1 ô = 1cm)</span>
+                </label>
+                <label class="inline-flex items-center gap-1.5 cursor-pointer font-medium text-slate-700">
+                  <input id="toggleSnapGrid" type="checkbox" checked class="rounded text-indigo-600 focus:ring-indigo-500" />
+                  <span>Bắt điểm lưới (Snap 10px)</span>
+                </label>
+                <label class="inline-flex items-center gap-1.5 cursor-pointer font-medium text-slate-700">
+                  <input id="toggleSnap90" type="checkbox" class="rounded text-indigo-600 focus:ring-indigo-500" />
+                  <span>Hỗ trợ góc vuông (Snap 90°)</span>
+                </label>
+                <label class="inline-flex items-center gap-1.5 cursor-pointer font-medium text-slate-700">
+                  <input id="toggleDiagonals" type="checkbox" checked class="rounded text-indigo-600 focus:ring-indigo-500" />
+                  <span>Đường chéo AC, BD</span>
+                </label>
+                <label class="inline-flex items-center gap-1.5 cursor-pointer font-medium text-slate-700">
+                  <input id="toggleMathSymbols" type="checkbox" checked class="rounded text-indigo-600 focus:ring-indigo-500" />
+                  <span>Ký hiệu toán học</span>
+                </label>
+              </div>
+              <span class="text-[11px] font-mono-code text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                Engine: <strong id="engineComputeTime">0.08 ms</strong> (60 FPS)
+              </span>
+            </div>
+
+            <!-- Cảnh báo ngoại lệ Tự cắt / Suy biến (US-02 & US-03) -->
+            <div id="edgeCaseWarningBanner" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-start gap-2.5">
+              <span class="text-base leading-none">⚠️</span>
+              <div>
+                <div id="edgeCaseWarningTitle" class="font-bold text-red-900">Cảnh báo hình không hợp lệ</div>
+                <p id="edgeCaseWarningDesc" class="text-red-700 mt-0.5"></p>
+              </div>
+            </div>
+
+            <!-- HTML5 Interactive Canvas (760 x 520) -->
+            <div class="canvas-wrapper">
+              <canvas id="geometryCanvas" width="760" height="520"></canvas>
+            </div>
+
+            <!-- Điều chỉnh tọa độ 4 đỉnh A, B, C, D trực tiếp -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+              <div class="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                <span class="font-bold text-indigo-600">Đỉnh A(x,y)</span>
+                <div class="flex items-center gap-1">
+                  <input id="coordAX" type="number" step="0.5" class="w-12 px-1.5 py-0.5 text-center rounded border border-slate-300 font-mono-code text-xs" />
+                  <input id="coordAY" type="number" step="0.5" class="w-12 px-1.5 py-0.5 text-center rounded border border-slate-300 font-mono-code text-xs" />
+                </div>
+              </div>
+              <div class="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                <span class="font-bold text-sky-600">Đỉnh B(x,y)</span>
+                <div class="flex items-center gap-1">
+                  <input id="coordBX" type="number" step="0.5" class="w-12 px-1.5 py-0.5 text-center rounded border border-slate-300 font-mono-code text-xs" />
+                  <input id="coordBY" type="number" step="0.5" class="w-12 px-1.5 py-0.5 text-center rounded border border-slate-300 font-mono-code text-xs" />
+                </div>
+              </div>
+              <div class="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                <span class="font-bold text-teal-600">Đỉnh C(x,y)</span>
+                <div class="flex items-center gap-1">
+                  <input id="coordCX" type="number" step="0.5" class="w-12 px-1.5 py-0.5 text-center rounded border border-slate-300 font-mono-code text-xs" />
+                  <input id="coordCY" type="number" step="0.5" class="w-12 px-1.5 py-0.5 text-center rounded border border-slate-300 font-mono-code text-xs" />
+                </div>
+              </div>
+              <div class="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                <span class="font-bold text-purple-600">Đỉnh D(x,y)</span>
+                <div class="flex items-center gap-1">
+                  <input id="coordDX" type="number" step="0.5" class="w-12 px-1.5 py-0.5 text-center rounded border border-slate-300 font-mono-code text-xs" />
+                  <input id="coordDY" type="number" step="0.5" class="w-12 px-1.5 py-0.5 text-center rounded border border-slate-300 font-mono-code text-xs" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ngân hàng 6 Bài tập thực hành dựng hình (US-10 & US-11) -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900">🎯 Bài Tập Thực Hành Dựng Hình Tự Chấm Bằng Đồ Thị Neo4j</h3>
+                <p class="text-xs text-slate-500">Chọn một bài tập bên dưới để bắt đầu kéo-thả đỉnh, nhận gợi ý 3 tầng (Graph Traversal) và chấm điểm tự động.</p>
+              </div>
+            </div>
+            <div id="constructionExercisesList" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+          </div>
+        </div>
+
+        <!-- CỘT PHẢI (5 CỘT): PHÂN LOẠI NEO4J, THÔNG SỐ THỜI GIAN THỰC & CYPHER INSPECTOR -->
+        <div class="lg:col-span-5 space-y-4">
+
+          <!-- Card 1: Kết quả Nhận diện & Phân loại Tứ giác qua Neo4j (US-06 / FR-04) -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Nhận diện Neo4j Knowledge Graph</span>
+              <span id="classifiedShapeRank" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                Rank 10 • Tin cậy 100%
+              </span>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <span id="classifiedShapeBadge" class="px-4 py-2 rounded-xl text-white font-extrabold text-lg shadow-sm" style="background-color: #4f46e5;">
+                Hình vuông
+              </span>
+              <div class="text-xs text-slate-600 space-y-0.5">
+                <div>Chu vi: <code id="formulaPerimeterText" class="font-mono-code font-semibold text-slate-800">P = 4 × a</code></div>
+                <div>Diện tích: <code id="formulaAreaText" class="font-mono-code font-semibold text-slate-800">S = a²</code></div>
+              </div>
+            </div>
+
+            <p id="classifiedShapeDesc" class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-100"></p>
+
+            <div>
+              <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Quan hệ kế thừa phả hệ (:SUBCLASS_OF):</div>
+              <div id="subclassListContainer" class="flex flex-wrap gap-1.5"></div>
+            </div>
+          </div>
+
+          <!-- Card 2: Bảng Thông Số Hình Học Thời Gian Thực (US-04 / FR-03) -->
+          <div id="validMetricsContainer" class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3.5 transition-opacity">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">📊 Thông Số Hình Học Thời Gian Thực</h3>
+              <span class="text-[11px] text-slate-400">Dung sai ε = ±0.05cm / ±0.5°</span>
+            </div>
+
+            <!-- Chu vi & Diện tích -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="p-3 rounded-xl bg-indigo-50/70 border border-indigo-100">
+                <div class="text-[11px] font-semibold text-indigo-600">Chu vi tứ giác (P)</div>
+                <div id="valPerimeter" class="text-lg font-extrabold text-indigo-950 font-mono-code mt-0.5">24.00 cm</div>
+              </div>
+              <div class="p-3 rounded-xl bg-emerald-50/70 border border-emerald-100">
+                <div class="text-[11px] font-semibold text-emerald-700">Diện tích tứ giác (S)</div>
+                <div id="valArea" class="text-lg font-extrabold text-emerald-950 font-mono-code mt-0.5">36.00 cm²</div>
+              </div>
+            </div>
+
+            <!-- Độ dài 4 cạnh & 2 đường chéo -->
+            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
+              <div class="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                <div class="text-[10px] font-bold text-slate-500">Cạnh AB</div>
+                <div id="valSideAB" class="text-xs font-bold text-slate-900 font-mono-code mt-0.5">6.00 cm</div>
+              </div>
+              <div class="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                <div class="text-[10px] font-bold text-slate-500">Cạnh BC</div>
+                <div id="valSideBC" class="text-xs font-bold text-slate-900 font-mono-code mt-0.5">6.00 cm</div>
+              </div>
+              <div class="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                <div class="text-[10px] font-bold text-slate-500">Cạnh CD</div>
+                <div id="valSideCD" class="text-xs font-bold text-slate-900 font-mono-code mt-0.5">6.00 cm</div>
+              </div>
+              <div class="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                <div class="text-[10px] font-bold text-slate-500">Cạnh DA</div>
+                <div id="valSideDA" class="text-xs font-bold text-slate-900 font-mono-code mt-0.5">6.00 cm</div>
+              </div>
+              <div class="p-2 rounded-lg bg-amber-50/70 border border-amber-200">
+                <div class="text-[10px] font-bold text-amber-700">Chéo AC</div>
+                <div id="valDiagAC" class="text-xs font-bold text-amber-900 font-mono-code mt-0.5">8.49 cm</div>
+              </div>
+              <div class="p-2 rounded-lg bg-amber-50/70 border border-amber-200">
+                <div class="text-[10px] font-bold text-amber-700">Chéo BD</div>
+                <div id="valDiagBD" class="text-xs font-bold text-amber-900 font-mono-code mt-0.5">8.49 cm</div>
+              </div>
+            </div>
+
+            <!-- Số đo 4 góc trong & tổng 360° -->
+            <div class="grid grid-cols-5 gap-2 text-center">
+              <div class="p-2 rounded-lg bg-sky-50/60 border border-sky-200">
+                <div class="text-[10px] font-bold text-sky-700">Góc Â</div>
+                <div id="valAngleA" class="text-xs font-bold text-sky-950 font-mono-code mt-0.5">90.0°</div>
+              </div>
+              <div class="p-2 rounded-lg bg-sky-50/60 border border-sky-200">
+                <div class="text-[10px] font-bold text-sky-700">Góc B̂</div>
+                <div id="valAngleB" class="text-xs font-bold text-sky-950 font-mono-code mt-0.5">90.0°</div>
+              </div>
+              <div class="p-2 rounded-lg bg-sky-50/60 border border-sky-200">
+                <div class="text-[10px] font-bold text-sky-700">Góc Ĉ</div>
+                <div id="valAngleC" class="text-xs font-bold text-sky-950 font-mono-code mt-0.5">90.0°</div>
+              </div>
+              <div class="p-2 rounded-lg bg-sky-50/60 border border-sky-200">
+                <div class="text-[10px] font-bold text-sky-700">Góc D̂</div>
+                <div id="valAngleD" class="text-xs font-bold text-sky-950 font-mono-code mt-0.5">90.0°</div>
+              </div>
+              <div class="p-2 rounded-lg bg-slate-800 text-white">
+                <div class="text-[10px] font-semibold text-slate-300">Tổng 4 góc</div>
+                <div id="valAngleSum" class="text-xs font-extrabold font-mono-code mt-0.5">360.0°</div>
+              </div>
+            </div>
+
+            <!-- Danh sách các Node (:Property) phát hiện được -->
+            <div>
+              <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                Đặc trưng hình học trích xuất gửi tới Neo4j ($detectedPropertyIds):
+              </div>
+              <div id="detectedPropsList" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
+            </div>
+          </div>
+
+          <!-- Card 3: Live Neo4j Cypher Query Inspector -->
+          <div class="bg-slate-900 text-slate-100 rounded-2xl p-4 shadow-sm space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Neo4j Cypher Reasoning Inspector</span>
+              </div>
+              <span id="cypherExecTimeBadge" class="text-[11px] font-mono-code text-emerald-400 bg-slate-800 px-2 py-0.5 rounded">
+                Neo4j Query: &lt; 1 ms
+              </span>
+            </div>
+            <pre id="liveCypherQueryCode" class="text-[11px] font-mono-code text-sky-300 bg-slate-950/90 p-3 rounded-xl overflow-x-auto leading-relaxed border border-slate-800"></pre>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== TAB 2: TRẮC NGHIỆM ĐỊNH LÝ NEO4J (US-09) ===================== -->
+    <section id="tabSection_quiz" class="hidden space-y-5">
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">US-09 • FR-06: Ngân hàng Định lý SGK Toán 8</span>
+          <h2 class="text-lg font-extrabold text-slate-900 mt-0.5">Bài Tập Trắc Nghiệm Lý Thuyết Liên Kết Đồ Thị Tri Thức Neo4j</h2>
+          <p class="text-xs text-slate-600 mt-0.5">
+            Mỗi câu hỏi được truy xuất từ các Node <code class="font-mono-code text-indigo-600">(:Theorem)</code> và <code class="font-mono-code text-indigo-600">(:Shape)</code>. Khi nộp bài, hệ thống tự động hiển thị đường dẫn chứng minh định lý.
+          </p>
+        </div>
+      </div>
+
+      <div id="quizQuestionsContainer" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
+    </section>
+
+    <!-- ===================== TAB 3: ĐỒ THỊ TRI THỨC & CYPHER LAB (US-05) ===================== -->
+    <section id="tabSection_graph" class="hidden space-y-5">
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Mục 2.3 & 2.4 Hồ sơ Đặc tả SRS</span>
+          <h2 class="text-lg font-extrabold text-slate-900 mt-0.5">Trực Quan Hóa Đồ Thị Tri Thức Tứ Giác (Neo4j Knowledge Graph)</h2>
+          <p class="text-xs text-slate-600 mt-0.5">
+            Nhấp vào bất kỳ Node <code class="font-mono-code text-indigo-600">(:Shape)</code> nào trên đồ thị để khám phá các cạnh <code class="font-mono-code">:SUBCLASS_OF</code>, <code class="font-mono-code">:HAS_PROPERTY</code>, <code class="font-mono-code">:REQUIRES</code> và <code class="font-mono-code">:CONCLUDES</code>.
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="window.QuadGeoApp.setGraphViewMode('FULL')" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold">
+            Đồ thị đầy đủ (:Shape + :Property + :Theorem)
+          </button>
+          <button onclick="window.QuadGeoApp.setGraphViewMode('TAXONOMY')" class="px-3.5 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold">
+            Chỉ xem Cây phả hệ (:SUBCLASS_OF)
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="lg:col-span-8 bg-slate-900 rounded-2xl p-3 border border-slate-800 shadow-sm">
+          <canvas id="knowledgeGraphCanvas" width="840" height="560"></canvas>
+        </div>
+
+        <div class="lg:col-span-4 space-y-4">
+          <div class="bg-slate-900 text-white rounded-2xl p-4 border border-slate-800 space-y-3">
+            <div class="text-xs font-bold uppercase tracking-wider text-indigo-400">Chi tiết Node đang chọn trên Đồ thị</div>
+            <h3 id="graphNodeInspectorTitle" class="text-base font-extrabold text-white">Hình vuông (:Shape)</h3>
+            <div id="graphNodeInspectorId" class="text-xs font-mono-code text-sky-400">id: "SQUARE" • Rank 10</div>
+            <p id="graphNodeInspectorDesc" class="text-xs text-slate-300 leading-relaxed"></p>
+            <div>
+              <div class="text-xs font-bold text-slate-400 mb-1.5">Các mối quan hệ (Relationships) trực tiếp:</div>
+              <div id="graphNodeInspectorRels" class="space-y-1.5 max-h-60 overflow-y-auto pr-1"></div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 space-y-2">
+            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Chú giải Node Labels & Relationships</h4>
+            <div class="space-y-1.5 text-xs text-slate-600">
+              <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-indigo-600 inline-block"></span> <strong>(:Shape)</strong>: 9 loại hình tứ giác (Rank 1 → Rank 10)</div>
+              <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-600 inline-block"></span> <strong>(:Property)</strong>: 13 tính chất hình học sơ cấp</div>
+              <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-600 inline-block"></span> <strong>(:Theorem)</strong>: 8 định lý & dấu hiệu nhận biết SGK Toán 8</div>
+              <div class="pt-1 text-[11px] font-mono-code text-slate-500">
+                Tất cả kịch bản Cypher gốc nằm tại thư mục: <code>neo4j/scripts/</code>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== TAB 4: TIẾN ĐỘ HỌC TẬP (:SOLVED) (US-12) ===================== -->
+    <section id="tabSection_progress" class="hidden space-y-5">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+          <div class="text-xs font-bold text-slate-500 uppercase">Số bài tập đã hoàn thành</div>
+          <div id="statSolvedCount" class="text-2xl font-extrabold text-indigo-600 mt-1">2 / 11</div>
+          <div class="text-xs text-slate-400 mt-1">Quan hệ (:User)-[:SOLVED]->(:Exercise)</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+          <div class="text-xs font-bold text-slate-500 uppercase">Điểm trung bình hệ thống</div>
+          <div id="statAvgScore" class="text-2xl font-extrabold text-emerald-600 mt-1">100 điểm</div>
+          <div class="text-xs text-slate-400 mt-1">Chấm tự động bằng Neo4j Graph Validation</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+          <div class="text-xs font-bold text-slate-500 uppercase">Tỷ lệ hoàn thành khóa học</div>
+          <div id="statProgressPercent" class="text-2xl font-extrabold text-sky-600 mt-1">18%</div>
+          <div class="text-xs text-slate-400 mt-1">Chuyên đề Tứ giác - Toán hình học phẳng lớp 8</div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+        <h3 class="text-sm font-extrabold text-slate-900">Lịch sử Lưu vết Học tập trên Graph Database (:User)-[:SOLVED]->(:Exercise)</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-200 text-[11px] font-bold uppercase text-slate-400">
+                <th class="py-2.5 px-3">Tên bài tập</th>
+                <th class="py-2.5 px-3">Hình mục tiêu (:Shape)</th>
+                <th class="py-2.5 px-3">Điểm số</th>
+                <th class="py-2.5 px-3">Số lần thử</th>
+                <th class="py-2.5 px-3">Thời gian</th>
+                <th class="py-2.5 px-3">Cấu trúc Graph Relationship</th>
+              </tr>
+            </thead>
+            <tbody id="solvedHistoryTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================= MODAL 1: CẤU HÌNH KẾT NỐI NEO4J & SEED GRAPH ======================= -->
+  <div id="neo4jModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-extrabold text-slate-900">Cấu hình Kết nối Neo4j & Seed Knowledge Graph</h3>
+          <p class="text-xs text-slate-500">Hỗ trợ cả Neo4j Desktop (bolt://localhost:7687) và Neo4j AuraDB Cloud (neo4j+s://...)</p>
+        </div>
+        <button onclick="window.QuadGeoApp.closeModal('neo4jModal')" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Neo4j Bolt / Aura URI</label>
+          <input id="inputNeo4jUri" type="text" value="bolt://localhost:7687" placeholder="bolt://localhost:7687 hoặc neo4j+s://xxxx.databases.neo4j.io" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono-code text-xs" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Username</label>
+            <input id="inputNeo4jUser" type="text" value="neo4j" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono-code text-xs" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Password</label>
+            <input id="inputNeo4jPassword" type="password" placeholder="Nhập mật khẩu Neo4j..." class="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono-code text-xs" />
+          </div>
+        </div>
+      </div>
+
+      <div id="neo4jModalMessage" class="hidden"></div>
+
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+        <button onclick="window.QuadGeoApp.seedNeo4jFromModal()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition">
+          ⚡ Chạy Cypher Seed Knowledge Graph (US-05)
+        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="window.QuadGeoApp.closeModal('neo4jModal')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold">
+            Đóng
+          </button>
+          <button onclick="window.QuadGeoApp.connectNeo4jFromModal()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition">
+            Kiểm tra & Lưu kết nối
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================= MODAL 2: ĐĂNG NHẬP / ĐĂNG KÝ JWT (US-13) ======================= -->
+  <div id="authModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-extrabold text-slate-900">Tài Khoản Học Sinh & Giảng Viên (JWT Auth)</h3>
+          <p class="text-xs text-slate-500">US-12 & US-13: Lưu vết học tập cá nhân hóa trên Neo4j</p>
+        </div>
+        <button onclick="window.QuadGeoApp.closeModal('authModal')" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+
+      <!-- Chuyển nhanh tài khoản mẫu để kiểm thử -->
+      <div class="space-y-2">
+        <div class="text-xs font-bold text-slate-600">Chuyển nhanh tài khoản Demo (1-Click):</div>
+        <div class="grid grid-cols-1 gap-2">
+          <button onclick="window.QuadGeoApp.loginWithDemoAccount('trung@student.edu.vn', '123456')" class="p-2.5 rounded-xl border border-slate-200 hover:border-indigo-400 bg-slate-50 text-left text-xs flex items-center justify-between">
+            <div>
+              <div class="font-bold text-slate-900">Đỗ Thành Trung (Học sinh Lớp 8A1)</div>
+              <div class="text-slate-500 font-mono-code text-[11px]">trung@student.edu.vn / 123456</div>
+            </div>
+            <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 font-semibold">Chọn</span>
+          </button>
+          <button onclick="window.QuadGeoApp.loginWithDemoAccount('minhanh@student.edu.vn', '123456')" class="p-2.5 rounded-xl border border-slate-200 hover:border-indigo-400 bg-slate-50 text-left text-xs flex items-center justify-between">
+            <div>
+              <div class="font-bold text-slate-900">Nguyễn Minh Anh (Học sinh Lớp 8A1)</div>
+              <div class="text-slate-500 font-mono-code text-[11px]">minhanh@student.edu.vn / 123456</div>
+            </div>
+            <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 font-semibold">Chọn</span>
+          </button>
+          <button onclick="window.QuadGeoApp.loginWithDemoAccount('tranbinh@uit.edu.vn', 'admin123')" class="p-2.5 rounded-xl border border-slate-200 hover:border-indigo-400 bg-slate-50 text-left text-xs flex items-center justify-between">
+            <div>
+              <div class="font-bold text-slate-900">Thầy Trần Bình (Giảng viên Hướng dẫn)</div>
+              <div class="text-slate-500 font-mono-code text-[11px]">tranbinh@uit.edu.vn / admin123</div>
+            </div>
+            <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-semibold">Chọn</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Form Đăng nhập / Đăng ký mới -->
+      <div class="pt-3 border-t border-slate-200 space-y-2.5 text-xs">
+        <div class="font-bold text-slate-700">Hoặc Đăng nhập / Đăng ký tài khoản mới:</div>
+        <input id="authNameInput" type="text" placeholder="Họ và tên (nếu đăng ký mới)" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+        <input id="authEmailInput" type="email" placeholder="Email (ví dụ: hocsinh@student.edu.vn)" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+        <input id="authPasswordInput" type="password" placeholder="Mật khẩu" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+        <div class="flex gap-2 pt-1">
+          <button onclick="window.QuadGeoApp.submitCustomAuth('login')" class="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold">
+            Đăng nhập
+          </button>
+          <button onclick="window.QuadGeoApp.submitCustomAuth('register')" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold">
+            Đăng ký mới
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/js/geometryEngine.js"></script>
+  <script src="/js/canvasRenderer.js"></script>
+  <script src="/js/graphVisualizer.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
